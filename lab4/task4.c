@@ -2,6 +2,8 @@
 #include <stdlib.h> //exit
 #include <unistd.h> //pipe
 #include <string.h> //strlen
+#include <sys/types.h>
+#include <sys/wait.h>
 
 
 int main()
@@ -27,7 +29,7 @@ int main()
 		//потомственный код
         close( descr[0] ); //потомок ничего не запишет в канал
 
-        char msg1[] = "hello1   ";
+        char msg1[] = "hello Solar system   ";
 
 		//последовательно считываем из программного канала по 1 символу
         write(descr[1], msg1, 64);
@@ -46,7 +48,7 @@ int main()
         //потомственный код
         close( descr[0] ); //потомок ничего не запишет в канал
 
-        char msg2[] = "hello2   ";
+        char msg2[] = "hello Earth   ";
 
         //последовательно считываем из программного канала по 1 символу
         write(descr[1], msg2, 64);
