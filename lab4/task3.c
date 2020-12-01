@@ -1,4 +1,4 @@
-#include <stdio.h> //printf
+#include <stdio.h>
 #include <stdlib.h> //exit
 #include <unistd.h> //execlp
 #include <sys/types.h>
@@ -16,7 +16,7 @@ int main()
 	
 	if ( child1 == 0 )
 	{
-		//потомственный код
+		//потомок
 		printf( "Child: pid=%d;	group=%d;	parent=%d\n\n", getpid(), getpgrp(), getppid() );
 		if ( execlp("ps", "ps", "al", 0) == -1 )
 		{
@@ -34,7 +34,7 @@ int main()
 	
 	if ( child2 == 0 )
 	{
-		//потомственный код
+		//потомок
 		printf( "Child: pid=%d;	group=%d;	parent=%d\n\n", getpid(), getpgrp(), getppid() );
 		if ( execlp("/bin/ls", "ls", "-l", 0) == -1 )
 		{
@@ -45,7 +45,7 @@ int main()
 	
 	if (child1 != 0 && child2 != 0)
 	{
-		//родительский код
+		//предок
 		printf( "Parent: pid=%d;	group=%d;	child1=%d 	child2=%d\n", getpid(), getpgrp(), child1, child2 );
 		int status;
 		pid_t ret_value;
