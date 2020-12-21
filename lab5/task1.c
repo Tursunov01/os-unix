@@ -36,8 +36,9 @@ void producer(const int semid, const int value, const int producer_id) {
         puts("PRODUCER   can not make operation on semaphore");
         exit(EXIT_FAILURE);
     }
-    shm_buffer[*shm_pos_producer] = value;
-    printf("PRODUCER  %d   pos %d -----> produced %d\n", producer_id, *shm_pos_producer, shm_buffer[*shm_pos_producer]);
+    char cur = value;
+    shm_buffer[*shm_pos_producer] = cur;
+    printf("PRODUCER  %d   pos %d -----> produced %c\n", producer_id, *shm_pos_producer, shm_buffer[*shm_pos_producer]);
     (*shm_pos_producer)++;
     if (semop(semid, producer_stop, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
@@ -46,12 +47,12 @@ void producer(const int semid, const int value, const int producer_id) {
 }
 
 void consumer(const int semid, const int value, const int consumer_id) {
-    sleep(rand() % 3);
+    sleep(rand() % 2);
     if (semop(semid, consumer_start, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
         exit(EXIT_FAILURE);
     }
-    printf("CONSUMER  %d   pos %d <----- cunsumed %d\n", consumer_id, *shm_pos_consumer, shm_buffer[*shm_pos_consumer]);
+    printf("CONSUMER  %d   pos %d <----- cunsumed %c\n", consumer_id, *shm_pos_consumer, shm_buffer[*shm_pos_consumer]);
     (*shm_pos_consumer)++;
 
     if (semop(semid, consumer_stop, 2) == -1) {
@@ -141,9 +142,9 @@ int main() {
     make_consumer(0, semid, 4);
     make_consumer(1, semid, 5);
 
-    make_producer(0, semid, 0, 3);
-    make_producer(1, semid, 10, 3);
-    make_producer(2, semid, 100, 3);
+    make_producer(0, semid, 97, 3);
+    make_producer(1, semid, 98, 3);
+    make_producer(2, semid, 99, 3);
 
     int status;
     for (int i = 0; i < 5; i++) {
