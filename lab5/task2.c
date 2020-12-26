@@ -10,6 +10,7 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
+//объявление семафор
 #define SEM_AW	0
 #define SEM_WW	1
 #define SEM_AR	2
