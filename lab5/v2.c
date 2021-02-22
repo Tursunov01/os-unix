@@ -9,8 +9,7 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
-int output = 97;
-
+char *value = NULL;
 const int N = 9;
 // const int COUNT = 5;
 const size_t shm_size = (N + 2) * sizeof(int);
@@ -32,16 +31,19 @@ struct sembuf producer_stop [2] = { { SEM_BINARY, V, 0 }, { SEM_FULL  , V, 0 } }
 struct sembuf consumer_start[2] = { { SEM_FULL  , P, 0 }, { SEM_BINARY, P, 0 } };
 struct sembuf consumer_stop [2] = { { SEM_BINARY, V, 0 }, { SEM_EMPTY , V, 0 } };
 
-void producer(const int semid, const int value, const int producer_id) {
+void producer(const int semid, const int producer_id) {
     sleep(rand() % 3);
     if (semop(semid, producer_start, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
         exit(EXIT_FAILURE);
     }
-    char cur = output;
-    shm_buffer[*shm_pos_producer] = cur;
+    shm_buffer[*shm_pos_producer] = *value;
     printf("PRODUCER  %d   pos %d -----> produced %c\n", producer_id, *shm_pos_producer, shm_buffer[*shm_pos_producer]);
-    output++;
+    if (*value == 'z'){
+            *value = 'a';
+    } else {
+        *value = *value + 1;
+    }
     (*shm_pos_producer)++;
     if (semop(semid, producer_stop, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
@@ -49,7 +51,7 @@ void producer(const int semid, const int value, const int producer_id) {
     }
 }
 
-void consumer(const int semid, const int value, const int consumer_id) {
+void consumer(const int semid, const int consumer_id) {
     sleep(5);
     if (semop(semid, consumer_start, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
@@ -64,7 +66,7 @@ void consumer(const int semid, const int value, const int consumer_id) {
     }
 }
 
-void make_producer(const int id, const int semid, int value, int COUNT) {
+void make_producer(const int id, const int semid, int COUNT) {
     pid_t child1_pid;
     if ((child1_pid = fork()) == -1) {
         puts("Can't fork");
@@ -74,8 +76,7 @@ void make_producer(const int id, const int semid, int value, int COUNT) {
         // child
         printf("Created producer %d\n", id);
         for (int i = 0; i < COUNT; i++) {
-            producer(semid, value, id);
-            value++;
+            producer(semid, id);
         }
 
         printf("PRODUCER  %d   finished his work. Terminating..\n", id);
@@ -93,7 +94,7 @@ void make_consumer(const int id, const int semid, int COUNT) {
         printf("Created consumer %d\n", id);
         // child
         for (int i = 0; i < COUNT; i++) {
-            consumer(semid, i, id);
+            consumer(semid, id);
         }
 
         printf("CONSUMER  %d   finished his work. Terminating..\n", id);
@@ -141,14 +142,13 @@ int main() {
         puts("Cannot set controll semaphores");
         exit(EXIT_FAILURE);
     }
-    
-    int output = 97;
+    *value = 'a';
     make_consumer(0, semid, 4);
     make_consumer(1, semid, 5);
 
-    make_producer(0, semid, output++, 3);
-    make_producer(1, semid, output++, 3);
-    make_producer(2, semid, output++, 3);
+    make_producer(0, semid, 3);
+    make_producer(1, semid, 3);
+    make_producer(2, semid, 3);
 
     int status;
     for (int i = 0; i < 5; i++) {

@@ -9,14 +9,12 @@
 #include <sys/shm.h>
 #include <sys/stat.h>
 
-int output = 97;
-
 const int N = 9;
 // const int COUNT = 5;
 const size_t shm_size = (N + 2) * sizeof(int);
 
 int* shm_attached_address;
-int* shm_buffer;
+char* shm_buffer;
 int* shm_pos_consumer;
 int* shm_pos_producer;
 
@@ -27,21 +25,24 @@ int* shm_pos_producer;
 #define P -1
 #define V 1
 
-struct sembuf producer_start[2] = { { SEM_EMPTY , P, 0 }, { SEM_BINARY, P, 0 } };
-struct sembuf producer_stop [2] = { { SEM_BINARY, V, 0 }, { SEM_FULL  , V, 0 } };
-struct sembuf consumer_start[2] = { { SEM_FULL  , P, 0 }, { SEM_BINARY, P, 0 } };
-struct sembuf consumer_stop [2] = { { SEM_BINARY, V, 0 }, { SEM_EMPTY , V, 0 } };
+struct sembuf producer_start[2] = 
+    { { SEM_EMPTY , P, 0 }, { SEM_BINARY, P, 0 } };
+struct sembuf producer_stop [2] = 
+    { { SEM_BINARY, V, 0 }, { SEM_FULL  , V, 0 } };
+struct sembuf consumer_start[2] = { 
+    { SEM_FULL  , P, 0 }, { SEM_BINARY, P, 0 } };
+struct sembuf consumer_stop [2] = 
+    { { SEM_BINARY, V, 0 }, { SEM_EMPTY , V, 0 } };
 
-void producer(const int semid, const int value, const int producer_id) {
+void producer(const int semid, const char value, const int producer_id) {
     sleep(rand() % 3);
     if (semop(semid, producer_start, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
         exit(EXIT_FAILURE);
     }
-    char cur = output;
-    shm_buffer[*shm_pos_producer] = cur;
-    printf("PRODUCER  %d   pos %d -----> produced %c\n", producer_id, *shm_pos_producer, shm_buffer[*shm_pos_producer]);
-    output++;
+    shm_buffer[*shm_pos_producer] = value;
+    printf("PRODUCER  %d   pos %d -----> produced %c\n", 
+        producer_id, *shm_pos_producer, shm_buffer[*shm_pos_producer]);
     (*shm_pos_producer)++;
     if (semop(semid, producer_stop, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
@@ -49,8 +50,8 @@ void producer(const int semid, const int value, const int producer_id) {
     }
 }
 
-void consumer(const int semid, const int value, const int consumer_id) {
-    sleep(5);
+void consumer(const int semid, const char value, const int consumer_id) {
+    sleep(rand() % 3);
     if (semop(semid, consumer_start, 2) == -1) {
         puts("PRODUCER   can not make operation on semaphore");
         exit(EXIT_FAILURE);
@@ -64,7 +65,7 @@ void consumer(const int semid, const int value, const int consumer_id) {
     }
 }
 
-void make_producer(const int id, const int semid, int value, int COUNT) {
+void make_producer(const int id, const int semid, char value, int COUNT) {
     pid_t child1_pid;
     if ((child1_pid = fork()) == -1) {
         puts("Can't fork");
@@ -110,7 +111,8 @@ int main() {
 
     pid_t parent_pid = getpid();
     printf("Parent pid: %i\n", parent_pid);
-    if ((shmid = shmget(IPC_PRIVATE, shm_size, IPC_CREAT | S_IRWXU | S_IRWXG | S_IRWXO)) == -1) {
+    shmid = shmget(IPC_PRIVATE, shm_size, IPC_CREAT | S_IRWXU | S_IRWXG | S_IRWXO);
+    if (shmid == -1) {
         puts("Unable to create shared area");
         exit(EXIT_FAILURE);
     }
@@ -124,7 +126,7 @@ int main() {
 
     shm_pos_producer = shm_attached_address;
     shm_pos_consumer = shm_attached_address +     sizeof(int);
-    shm_buffer       = shm_attached_address + 2 * sizeof(int);
+    shm_buffer       = shm_attached_address + 2 * sizeof(char);
     (*shm_pos_producer) = 0;
     (*shm_pos_consumer) = 0;
 
@@ -142,13 +144,12 @@ int main() {
         exit(EXIT_FAILURE);
     }
     
-    int output = 97;
     make_consumer(0, semid, 4);
     make_consumer(1, semid, 5);
 
-    make_producer(0, semid, output++, 3);
-    make_producer(1, semid, output++, 3);
-    make_producer(2, semid, output++, 3);
+    make_producer(0, semid, 'a', 3);
+    make_producer(1, semid, 'b', 3);
+    make_producer(2, semid, 'c', 3);
 
     int status;
     for (int i = 0; i < 5; i++) {
