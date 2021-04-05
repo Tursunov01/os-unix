@@ -10,7 +10,7 @@
 #include "md.h"
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Rusinova Daria");
+MODULE_AUTHOR("Tursunov Jasur");
 
 static int __init md_init(void)
 {
