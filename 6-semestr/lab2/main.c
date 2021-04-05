@@ -59,23 +59,23 @@ static int dopath(const char *filename, int depth, Handler *func)
 	DIR *dp;
 	int ret = 0;
 
-	if (lstat(filename, &statbuf) < 0) // ошибка  
+	if (lstat(filename, &statbuf) < 0) // ошибка  можем ли мы получить информацию об этом файле  
 		return(func(filename, &statbuf, FTW_NS));
 
 	for (int i = 0; i < depth; ++i)
 		printf("|\t");
 
-	if (S_ISDIR(statbuf.st_mode) == 0) // не каталог 
+	if (S_ISDIR(statbuf.st_mode) == 0) // проверка этот файл не каталог-> отобразить в дереве 
 		return(func(filename, &statbuf, FTW_F)); // отобразить в дереве 
 
 	if ((ret = func(filename, &statbuf, FTW_D)) != 0)
 		return(ret);
 
-	if ((dp = opendir(filename)) == NULL) // каталог недоступен
+	if ((dp = opendir(filename)) == NULL) // если нельзя открыть каталог, т.е каталог недоступен
 		return(func(filename, &statbuf, FTW_DNR));
     
 	chdir(filename);
-	while ((dirp = readdir(dp)) != NULL && ret == 0)
+	while ((dirp = readdir(dp)) != NULL && ret == 0) когда доходим из каталога
 	{
 		if (strcmp(dirp->d_name, ".") != 0 &&
 			strcmp(dirp->d_name, "..") != 0 ) // пропуск каталогов . и ..
