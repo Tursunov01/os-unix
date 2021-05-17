@@ -63,14 +63,22 @@ static int my_release(struct inode *inode, struct file *file)
 	return single_release(inode, file);  //выгружает seq file
 }
 
-static struct file_operations fortune_proc_ops={
-	//.proc_owner = THIS_MODULE,
-	.open = my_open,
-	.release = my_release,
-	.read = seq_read,
-	//.llseek = seq_lseek, 
-	.write = my_write
-};
+// static struct file_operations fortune_proc_ops={
+// 	//.proc_owner = THIS_MODULE,
+// 	.open = my_open,
+// 	.release = my_release,
+// 	.read = seq_read,
+// 	//.llseek = seq_lseek, 
+// 	.write = my_write
+// };
+
+struct proc_ops fortune_fops = {
+     // .owner = THIS_MODULE,
+	.proc_open = my_open,
+	.proc_release = my_release,
+    .proc_read = seq_read,
+    .proc_write = my_write,
+ };
 
 static int __init fortune_init(void)
 {
@@ -90,12 +98,12 @@ static int __init fortune_init(void)
 
     //Чтобы работать с виртуальной файловой системой proc в ядре, в ядре определена структура 
 	struct proc_dir_entry *entry;
-	entry = proc_create("fortune", S_IRUGO | S_IWUGO, NULL, &fortune_proc_ops); //создаёт файл в виртуальной системе проц - имя файла, права доступа, указатель на родителя (если Null то создастся в корне), указатель на операции
+	entry = proc_create("fortune", S_IRUGO | S_IWUGO, NULL, &fortune_fops); //создаёт файл в виртуальной системе проц - имя файла, права доступа, указатель на родителя (если Null то создастся в корне), указатель на операции
 	if(!entry)
 	{
 		vfree(str);
 		printk(KERN_INFO "Error: can't create fortune file\n");
-        return -ENOMEM;cd 02-evdev
+        return -ENOMEM;
 	}	
 
     // создать каталог в файловой системе /proc 
