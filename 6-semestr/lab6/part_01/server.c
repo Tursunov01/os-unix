@@ -55,6 +55,8 @@ int main()
             return error();
 
         buffer[size] = '\0';
+        //printf("YAYA\n");
+        printf("\n");
         printf("%s", buffer);
     }
 

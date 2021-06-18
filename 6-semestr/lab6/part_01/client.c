@@ -1,3 +1,5 @@
+#define  _POSIX_C_SOURCE 200809L
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -19,10 +21,11 @@ void close_app()
 
 int main()
 {
-    size_t len;
+    //size_t len;
     struct sockaddr srvr_name;
-    char *buffer;
+    //char *buffer;
     char message[SIZE_BUFFER];
+    setbuf(stdout, NULL);
 
     signal(SIGINT, close_app);
 
@@ -34,13 +37,17 @@ int main()
     srvr_name.sa_family = AF_UNIX;
     strcpy(srvr_name.sa_data, "socket.soc");
 
-    while(1)
-    {
+    while(1){
         printf("Type message: ");
-        getline(&buffer, &len, stdin);
-        sprintf(message, "[%d] : %s", getpid(), buffer);
+        scanf("%s", message);
+        //getline(&buffer, &len, stdin);
+        //getpid();
+        //printf("kakaya to xuynya");
+        //printf("buf: %s", buffer);
+        printf("PID: [%d] : %s\n", getpid(), message);
         sendto(sockfd, message, strlen(message), 0, &srvr_name, strlen(srvr_name.sa_data) + sizeof(srvr_name.sa_family) + 1);
     }
+        
 
     return 0;
 }

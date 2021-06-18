@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
         return error();
 
     server = gethostbyname(argv[1]);
+    printf(server);
 
     if (server == NULL)
         return error();

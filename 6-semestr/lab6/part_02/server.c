@@ -25,6 +25,7 @@ void close_signal()
 
 int connection(int client[FD_SETSIZE], fd_set *allset, fd_set *rset)
 {
+    printf("Log a new connection");
     int i = 0;
     int connfd;
     int message_len;
